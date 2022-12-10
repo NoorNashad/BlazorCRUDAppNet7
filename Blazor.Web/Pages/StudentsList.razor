@@ -1,0 +1,84 @@
+﻿@page "/students-list"
+@using Blazor.Shared.Models;
+@using Newtonsoft.Json;
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Students List</PageTitle>
+
+<h1>Students List</h1>
+
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email Address</th>
+                <th>Gender</th>
+                <th>Created On</th>
+                <th>Delete</th>
+            <th>Update</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var std in studentsLists)
+            {
+                <tr>
+                <td>@std.StudentID</td>
+                <td>@std.FirstName</td>
+                <td>@std.LastName</td>
+                <td>@std.EmailAddress</td>
+                <td>@std.Gender</td>
+                <td>@std.CreatedOn</td>
+                <td><button type="button" @onclick="(async () => await DeleteStudent(std.StudentID))" class="btn btn-danger">Delete</button></td>
+                <td><button type="button" @onclick="(async () => await NavigateToUpdateStudent(std.StudentID))" class="btn btn-primary">Edit</button></td>
+                   
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+@code {
+
+    protected List<StudentEntity> studentsLists = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await GetStudentList();
+    }
+    protected async Task GetStudentList()
+    {
+        string apiUrl = "https://localhost:7172/api/students/get-students-list";
+        var response = await Http.GetAsync(apiUrl);
+        response.EnsureSuccessStatusCode();
+        string responseBodyJson = await response.Content.ReadAsStringAsync();
+
+        studentsLists = JsonConvert.DeserializeObject<List<StudentEntity>>(responseBodyJson);
+    }
+
+    protected async Task DeleteStudent(int StudentID)
+    {
+        string apiUrl = "https://localhost:7172/api/students/delete-student/"+ StudentID;
+
+
+        await Http.DeleteAsync(apiUrl);
+
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected async Task NavigateToUpdateStudent(int StudentID)
+    {
+        string pageURl = "update-student/" + StudentID;
+
+
+
+        NavigationManager.NavigateTo(pageURl);
+    }
+  
+}

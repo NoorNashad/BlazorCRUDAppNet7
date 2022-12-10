@@ -1,0 +1,95 @@
+﻿@page "/update-student/{StudentID:int}"
+@using Blazor.Shared.Models;
+@using Newtonsoft.Json;
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Update Student</PageTitle>
+
+<h1>Update Student</h1>
+
+<EditForm Model="@student" OnValidSubmit="UpdateUser">
+    <DataAnnotationsValidator />
+
+   
+
+    <div class="mb-3">
+        <label for="FirstName" class="form-label">First Name</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="student.FirstName" />
+        </div>
+        <ValidationMessage For="@(() => student.FirstName)" />
+    </div>
+    <div class="mb-3">
+        <label for="LastName" class="form-label">Last Name</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="student.LastName" />
+        </div>
+        <ValidationMessage For="@(() => student.LastName)" />
+    </div>
+    <div class="mb-3">
+        <label for="EmailAddress" class="form-label">Email Address</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="student.EmailAddress" />
+        </div>
+        <ValidationMessage For="@(() => student.EmailAddress)" />
+    </div>
+    <div class="mb-3">
+        <label for="Gender" class="form-label">Gender</label>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="student.Gender" />
+        </div>
+        <ValidationMessage For="@(() => student.Gender)" />
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button class="btn btn-light" @onclick="Cancel">Cancel</button>
+    </div>
+</EditForm>
+
+
+
+
+@code {
+
+    [Parameter]
+    public int StudentID { get; set; }
+
+
+    protected StudentEntity student = new();
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string apiUrl = "https://localhost:7172/api/students/get-students-list";
+        var response = await Http.GetAsync(apiUrl);
+        response.EnsureSuccessStatusCode();
+        string responseBodyJson = await response.Content.ReadAsStringAsync();
+
+
+        var  studentsLists = JsonConvert.DeserializeObject<List<StudentEntity>>(responseBodyJson);
+
+        student = studentsLists.Where(x => x.StudentID == StudentID).FirstOrDefault();
+    }
+
+
+
+    protected async Task UpdateUser()
+    {
+        string apiUrl = "https://localhost:7172/api/students/update-student";
+
+
+        if (student.StudentID < 1)
+        {
+            return;
+        }
+
+        await Http.PostAsJsonAsync(apiUrl, student);
+        NavigationManager.NavigateTo("/students-list");
+    }
+
+    protected async Task Cancel()
+    {
+       
+    }
+}
